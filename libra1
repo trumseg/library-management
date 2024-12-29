@@ -1,0 +1,170 @@
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <sstream>
+using namespace std;
+
+class Thu_vien {
+private:
+    string Ma_sach;
+    string Ten_sach;
+    bool Trang_thai;
+    int Han_tra_sach; // Thời hạn trả sách (ngày)
+
+public:
+    Thu_vien() : Ma_sach("Unknown"), Ten_sach("Unknown"), Trang_thai(false), Han_tra_sach(0) {}
+
+    Thu_vien(const string& maSach, const string& tenSach, int hanTraSach)
+        : Ma_sach(maSach), Ten_sach(tenSach), Trang_thai(false), Han_tra_sach(hanTraSach) {}
+
+    void Muon_sach() {
+        if (Trang_thai) {
+            cout << "Sach \"" << Ten_sach << "\" da duoc muon!\n";
+        } else {
+            Trang_thai = true;
+            cout << "Ban da muon sach! ID: " << Ma_sach << " - " << Ten_sach << "\n";
+        }
+    }
+
+    void Tra_sach() {
+        if (!Trang_thai) {
+            cout << "Sach \"" << Ten_sach << "\" chua duoc muon!\n";
+        } else {
+            Trang_thai = false;
+            cout << "Ban da tra sach! ID: " << Ma_sach << " - " << Ten_sach << "\n";
+        }
+    }
+
+    void Tinh_tien_phat(int So_ngay_muon) {
+        if (!Trang_thai) {
+            cout << "ID: " << Ma_sach << " - Sach \"" << Ten_sach << " hien khong duoc muon.\n";
+            return;
+        }
+
+        int So_ngay_tre_han = So_ngay_muon - Han_tra_sach;
+        if (So_ngay_tre_han > 0) {
+            int Tien_phat = So_ngay_tre_han * 3000; // Tien phat 3000 VND moi ngay qua han
+            cout << "ID: " << Ma_sach << " - Sach \"" << Ten_sach << "\" da tre " << So_ngay_tre_han << " ngay.\n";
+            cout << "So tien phat la: " << Tien_phat << " VND.\n";
+        } else {
+            cout << "ID: " << Ma_sach << " - Sach \"" << Ten_sach << "\" van trong thoi han tra sach!\n";
+        }
+    }
+
+    string getMaSach() const {
+        return Ma_sach;
+    }
+
+    string getTenSach() const {
+        return Ten_sach;
+    }
+
+    bool isTrang_thai() const {
+        return Trang_thai;
+    }
+
+    void setTrang_thai(bool state) {
+        Trang_thai = state;
+    }
+};
+
+// Ham doc du lieu tu file
+Thu_vien* Doc_du_lieu_tu_file(const string& tenFile, int& soLuong) {
+    ifstream file(tenFile);
+    if (!file) {
+        cerr << "Khong the mo file: " << tenFile << "\n";
+        exit(1);
+    }
+
+    string line;
+    soLuong = 0;
+
+    // Dem so luong sach
+    while (getline(file, line)) {
+        soLuong++;
+    }
+
+    file.clear(); //xoa loi end of file
+    file.seekg(0, ios::beg); // dieu chinh con tro ve dau file
+
+    Thu_vien* danh_sach_sach = new Thu_vien[soLuong];
+    int index = 0;
+
+    while (getline(file, line)) {
+        stringstream ss(line);
+        string maSach, tenSach, hanTra;
+
+        getline(ss, maSach, ',');
+        getline(ss, tenSach, ',');
+        getline(ss, hanTra, ',');
+
+        danh_sach_sach[index] = Thu_vien(maSach, tenSach, stoi(hanTra));
+        index++;
+    }
+
+    file.close();
+    return danh_sach_sach;
+}
+
+int main() {
+    int So_luong_sach;
+    Thu_vien* danh_sach_sach = Doc_du_lieu_tu_file("data.txt", So_luong_sach);
+
+    int luaChon;
+    int ID_sach;
+    int So_ngay;
+
+    do {
+        cout << "\n===== He Thong Quan Ly Thu Vien =====\n";
+        cout << "1. Muon sach\n";
+        cout << "2. Tra sach\n";
+        cout << "3. Tinh tien phat\n";
+        cout << "0. Thoat chuong trinh\n";
+        cout << "Nhap lua chon cua ban: ";
+        cin >> luaChon;
+
+        switch (luaChon) {
+        case 1: // Muon sach
+            cout << "Nhap ID sach (1-" << So_luong_sach << "): ";
+            cin >> ID_sach;
+            if (ID_sach >= 1 && ID_sach <= So_luong_sach) {
+                danh_sach_sach[ID_sach - 1].Muon_sach();
+            } else {
+                cout << "ID sach khong hop le! \n";
+            }
+            break;
+
+        case 2: // Tra sach
+            cout << "Nhap ID sach (1-" << So_luong_sach << "): ";
+            cin >> ID_sach;
+            if (ID_sach >= 1 && ID_sach <= So_luong_sach) {
+                danh_sach_sach[ID_sach - 1].Tra_sach();
+            } else {
+                cout << "ID sach khong hop le! \n";
+            }
+            break;
+
+        case 3: // Tinh tien phat
+            cout << "Nhap ID sach (1-" << So_luong_sach << "): ";
+            cin >> ID_sach;
+            if (ID_sach >= 1 && ID_sach <= So_luong_sach) {
+                cout << "Nhap so ngay da muon sach: ";
+                cin >> So_ngay;
+                danh_sach_sach[ID_sach - 1].Tinh_tien_phat(So_ngay);
+            } else {
+                cout << "ID sach khong hop le!\n";
+            }
+            break;
+
+        case 0: // Thoat
+            cout << "Thoat chuong trinh. Hen gap lai!\n";
+            break;
+
+        default:
+            cout << "Lua chon khong hop le. Vui long thu lai!\n";
+        }
+    } while (luaChon != 0);
+
+    delete[] danh_sach_sach;
+    return 0;
+}
