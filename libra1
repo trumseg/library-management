@@ -2,6 +2,7 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include <vector>
 using namespace std;
 
 class Thu_vien {
@@ -15,12 +16,79 @@ public:
     Thu_vien() : Ma_sach("Unknown"), Ten_sach("Unknown"), Trang_thai(false), Han_tra_sach(0) {}
 
     Thu_vien(const string& maSach, const string& tenSach, int hanTraSach)
-        : Ma_sach(maSach), Ten_sach(tenSach), Trang_thai(false), Han_tra_sach(hanTraSach) {}
+        : Ma_sach(maSach), Ten_sach(tenSach), Trang_thai(false), Han_tra_sach(hanTraSach) {
+    }
+
+    void Them_sach_vao_file() {
+        string tenFile = "data.txt"; // Mặc định sử dụng file data.txt
+        string maSach, tenSach;
+        int hanTra;
+
+        // Nhập thông tin sách từ người dùng
+        cout << "Nhap ma sach: ";
+        cin >> maSach;
+        cout << "Nhap ten sach: ";
+        cin.ignore(); // Loại bỏ ký tự xuống dòng còn lại
+        getline(cin, tenSach);
+        cout << "Nhap thoi han tra (so ngay): ";
+        cin >> hanTra;
+
+        // Tạo đối tượng sách mới
+        Thu_vien sachMoi(maSach, tenSach, hanTra);
+
+        // Mở file để ghi thêm thông tin sách mới
+        ofstream file(tenFile, ios::app);
+        if (!file) {
+            cerr << "Khong the mo file: " << tenFile << "\n";
+            return;
+        }
+
+        // Ghi thông tin sách vào file
+        file << sachMoi.getMaSach() << ","
+            << sachMoi.getTenSach() << ","
+            << sachMoi.getHanTra() << "\n";
+
+        file.close();
+        cout << "Da them sach moi vao file data.txt thanh cong!\n";
+    }
+
+    void In_danh_sach_sach() {
+        string tenFile = "data.txt";  // Sử dụng file data.txt
+
+        ifstream file(tenFile);  // Mở file để đọc
+        if (!file.is_open()) {
+            cerr << "Khong the mo file de doc: " << tenFile << "\n";
+            return;
+        }
+
+        string line;
+        cout << "Danh sach sach trong thu vien:\n";
+        cout << "ID Sach | Ten Sach                  | Thoi Han Tra\n";
+
+        // Đọc từng dòng trong file và in thông tin sách
+        while (getline(file, line)) {
+            stringstream ss(line);
+            string maSach, tenSach;
+            int hanTraSach;
+
+            // Tách các thông tin từ mỗi dòng
+            getline(ss, maSach, ',');  // Lấy mã sách
+            getline(ss, tenSach, ','); // Lấy tên sách
+            ss >> hanTraSach;          // Lấy thời hạn trả sách
+
+            // In thông tin sách
+            cout << maSach << " | " << tenSach << " | " << hanTraSach << "\n";
+        }
+
+        file.close();  // Đóng file sau khi đọc
+    }
+
 
     void Muon_sach() {
         if (Trang_thai) {
             cout << "Sach \"" << Ten_sach << "\" da duoc muon!\n";
-        } else {
+        }
+        else {
             Trang_thai = true;
             cout << "Ban da muon sach! ID: " << Ma_sach << " - " << Ten_sach << "\n";
         }
@@ -29,7 +97,8 @@ public:
     void Tra_sach() {
         if (!Trang_thai) {
             cout << "Sach \"" << Ten_sach << "\" chua duoc muon!\n";
-        } else {
+        }
+        else {
             Trang_thai = false;
             cout << "Ban da tra sach! ID: " << Ma_sach << " - " << Ten_sach << "\n";
         }
@@ -46,9 +115,14 @@ public:
             int Tien_phat = So_ngay_tre_han * 3000; // Tien phat 3000 VND moi ngay qua han
             cout << "ID: " << Ma_sach << " - Sach \"" << Ten_sach << "\" da tre " << So_ngay_tre_han << " ngay.\n";
             cout << "So tien phat la: " << Tien_phat << " VND.\n";
-        } else {
+        }
+        else {
             cout << "ID: " << Ma_sach << " - Sach \"" << Ten_sach << "\" van trong thoi han tra sach!\n";
         }
+    }
+
+    int getHanTra() const {
+        return Han_tra_sach;
     }
 
     string getMaSach() const {
@@ -119,6 +193,8 @@ int main() {
         cout << "1. Muon sach\n";
         cout << "2. Tra sach\n";
         cout << "3. Tinh tien phat\n";
+        cout << "4. Them sach\n";
+        cout << "5.In danh sach sach \n";
         cout << "0. Thoat chuong trinh\n";
         cout << "Nhap lua chon cua ban: ";
         cin >> luaChon;
@@ -129,7 +205,8 @@ int main() {
             cin >> ID_sach;
             if (ID_sach >= 1 && ID_sach <= So_luong_sach) {
                 danh_sach_sach[ID_sach - 1].Muon_sach();
-            } else {
+            }
+            else {
                 cout << "ID sach khong hop le! \n";
             }
             break;
@@ -139,7 +216,8 @@ int main() {
             cin >> ID_sach;
             if (ID_sach >= 1 && ID_sach <= So_luong_sach) {
                 danh_sach_sach[ID_sach - 1].Tra_sach();
-            } else {
+            }
+            else {
                 cout << "ID sach khong hop le! \n";
             }
             break;
@@ -151,10 +229,23 @@ int main() {
                 cout << "Nhap so ngay da muon sach: ";
                 cin >> So_ngay;
                 danh_sach_sach[ID_sach - 1].Tinh_tien_phat(So_ngay);
-            } else {
+            }
+            else {
                 cout << "ID sach khong hop le!\n";
             }
             break;
+
+        case 4: { // Them sach
+            Thu_vien thuVien; // Tạo đối tượng lớp Thu_vien
+            thuVien.Them_sach_vao_file(); // Gọi hàm thêm sách vào file
+            break;
+        }
+
+        case 5: { // In danh sách sách
+            Thu_vien thuVien; // Tạo đối tượng của lớp Thu_vien
+            thuVien.In_danh_sach_sach(); // Gọi hàm in danh sách sách
+            break;
+        }
 
         case 0: // Thoat
             cout << "Thoat chuong trinh. Hen gap lai!\n";
@@ -168,3 +259,4 @@ int main() {
     delete[] danh_sach_sach;
     return 0;
 }
+
