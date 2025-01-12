@@ -52,40 +52,47 @@ public:
         cout << "Da them sach moi vao file data.txt thanh cong!\n";
     }
 
-    void In_danh_sach_sach() {
-        string tenFile = "data.txt";  // Sử dụng file data.txt
+   void In_danh_sach_sach() {
+    string tenFile = "data.txt";  // Sử dụng file data.txt
 
-        ifstream file(tenFile);  // Mở file để đọc
-        if (!file.is_open()) {
-            cerr << "Khong the mo file de doc: " << tenFile << "\n";
-            return;
-        }
-
-        string line;
-        cout << "Danh sach sach trong thu vien:\n";
-        cout << left << setw(10) << "ID Sach" << " | "
-     << setw(50) << "                   Ten Sach" << " | "
-     << setw(10) << "Thoi Han Tra" << "\n";
-
-        // Đọc từng dòng trong file và in thông tin sách
-        while (getline(file, line)) {
-            stringstream ss(line);
-            string maSach, tenSach;
-            int hanTraSach;
-
-            // Tách các thông tin từ mỗi dòng
-            getline(ss, maSach, ',');  // Lấy mã sách
-            getline(ss, tenSach, ','); // Lấy tên sách
-            ss >> hanTraSach;          // Lấy thời hạn trả sách
-
-            // In thông tin sách
-           cout << left << setw(10) << maSach << " | "
-     << setw(50) << tenSach << " | "
-     << setw(10) << hanTraSach << "\n";
-        }
-
-        file.close();  // Đóng file sau khi đọc
+    ifstream file(tenFile);  // Mở file để đọc
+    if (!file.is_open()) {
+        cerr << "Khong the mo file de doc: " << tenFile << "\n";
+        return;
     }
+
+    string line;
+    cout << "Danh sach sach trong thu vien:\n";
+    cout << left << setw(10) << "ID Sach" << " | "
+         << setw(50) << "Ten Sach" << " | "
+         << setw(10) << "Thoi Han Tra" << "\n";
+
+    // Đọc từng dòng trong file và in thông tin sách
+    while (getline(file, line)) {
+        stringstream ss(line);
+        string maSach, tenSach;
+        int hanTraSach;
+
+        // Tách các thông tin từ mỗi dòng
+        getline(ss, maSach, ',');  // Lấy mã sách
+        getline(ss, tenSach, ','); // Lấy tên sách
+        ss >> hanTraSach;          // Lấy thời hạn trả sách
+
+        // Loại bỏ khoảng trắng thừa ở đầu và cuối chuỗi
+        maSach.erase(maSach.find_last_not_of(" \n\r\t") + 1);
+        maSach.erase(0, maSach.find_first_not_of(" \n\r\t"));
+        tenSach.erase(tenSach.find_last_not_of(" \n\r\t") + 1);
+        tenSach.erase(0, tenSach.find_first_not_of(" \n\r\t"));
+
+        // In thông tin sách
+        cout << left << setw(10) << maSach << " | "
+             << setw(50) << tenSach << " | "
+             << setw(10) << hanTraSach << "\n";
+    }
+
+    file.close();  // Đóng file sau khi đọc
+}
+
 
 
     void Muon_sach() {
@@ -249,6 +256,46 @@ void Xoa_sach(const string& maSachXoa) {
     delete[] danhSach; // Giải phóng bộ nhớ động
     cout << "Da xoa sach ID: \"" << maSachXoa << "\" thanh cong!\n";
 }
+void Tim_kiem_sach() {
+    string tenFile = "data.txt"; // File dữ liệu mặc định
+    string maSachCanTim;
+
+    cout << "Nhap ma sach can tim: ";
+    cin >> maSachCanTim;
+
+    ifstream file(tenFile);
+    if (!file) {
+        cerr << "Khong the mo file: " << tenFile << "\n";
+        return;
+    }
+
+    string line;
+    bool found = false;
+
+    while (getline(file, line)) {
+        stringstream ss(line);
+        string maSach, tenSach, hanTra;
+
+        getline(ss, maSach, ',');
+        getline(ss, tenSach, ',');
+        getline(ss, hanTra, ',');
+
+        if (maSach == maSachCanTim) {
+            found = true;
+            cout << "\nThong tin sach tim thay:\n";
+            cout << "Ma sach: " << maSach << "\n";
+            cout << "Ten sach: " << tenSach << "\n";
+            cout << "Thoi han tra: " << hanTra << " ngay\n";
+            break;
+        }
+    }
+
+    file.close();
+
+    if (!found) {
+        cout << "Khong tim thay sach voi ma \"" << maSachCanTim << "\".\n";
+    }
+}
 
 
 
@@ -268,6 +315,7 @@ int main() {
         cout << "4. Them sach\n";
         cout << "5. In danh sach sach \n";
         cout << "6. Xoa sach \n";
+        cout << "7. Tim kiem sach \n";
         cout << "0. Thoat chuong trinh\n";
         cout << "Nhap lua chon cua ban: ";
         cin >> luaChon;
@@ -358,6 +406,11 @@ int main() {
             cin >> maSachXoa;
             Xoa_sach(maSachXoa);
             break;
+        }
+        case 7:
+        {
+             Tim_kiem_sach();
+                break;
         }
 
         case 0: // Thoat
